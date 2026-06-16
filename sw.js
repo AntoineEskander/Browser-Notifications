@@ -9,7 +9,7 @@ self.addEventListener("fetch", (e) => {
 
 self.addEventListener("message", (e) => {
   if (e.data?.type === "SHOW_NOTIFICATION") {
-    const { title, body, icon } = e.data;
+    const { title, body, icon, badge } = e.data;
     const opts = {
       body: body || "",
       vibrate: [100, 50, 100],
@@ -17,8 +17,8 @@ self.addEventListener("message", (e) => {
       requireInteraction: false,
       tag: "notifier-" + Date.now(),
     };
-    // Only set icon if one was provided — avoids silent Chrome suppression on bad URLs
     if (icon) opts.icon = icon;
+    if (badge) opts.badge = badge;
     e.waitUntil(
       self.registration.showNotification(title || "Notification", opts),
     );

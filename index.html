@@ -1,826 +1,1438 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0f0f0f">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Notifier">
-<link rel="manifest" href="manifest.json">
-<title>Notifier</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0f0f0f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Notifier" />
+    <link rel="manifest" href="manifest.json" />
+    <title>Notifier</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-  :root {
-    --bg: #0f0f0f;
-    --surface: #1a1a1a;
-    --surface-2: #242424;
-    --border: rgba(255,255,255,0.08);
-    --border-hover: rgba(255,255,255,0.16);
-    --accent: #a78bfa;
-    --accent-dim: rgba(167,139,250,0.12);
-    --accent-glow: rgba(167,139,250,0.25);
-    --text: #f5f5f5;
-    --text-2: #888;
-    --text-3: #555;
-    --success: #34d399;
-    --warning: #fbbf24;
-    --danger: #f87171;
-    --info: #60a5fa;
-    --radius: 14px;
-    --radius-sm: 8px;
-    --transition: 0.18s ease;
-  }
+      :root {
+        --bg: #0f0f0f;
+        --surface: #1a1a1a;
+        --surface-2: #242424;
+        --border: rgba(255, 255, 255, 0.08);
+        --border-hover: rgba(255, 255, 255, 0.16);
+        --accent: #a78bfa;
+        --accent-dim: rgba(167, 139, 250, 0.12);
+        --accent-glow: rgba(167, 139, 250, 0.25);
+        --text: #f5f5f5;
+        --text-2: #888;
+        --text-3: #555;
+        --success: #34d399;
+        --warning: #fbbf24;
+        --danger: #f87171;
+        --info: #60a5fa;
+        --radius: 14px;
+        --radius-sm: 8px;
+        --transition: 0.18s ease;
+      }
 
-  html, body {
-    height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    -webkit-font-smoothing: antialiased;
-  }
+      html,
+      body {
+        height: 100%;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+      }
 
-  body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100dvh;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100dvh;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right)
+          env(safe-area-inset-bottom) env(safe-area-inset-left);
+      }
 
-  .app {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    max-width: 520px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 24px 20px 40px;
-  }
+      .app {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        max-width: 520px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 24px 20px 40px;
+      }
 
-  header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 32px;
-  }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 32px;
+      }
 
-  .logo {
-    width: 38px; height: 38px;
-    background: var(--accent-dim);
-    border: 1px solid rgba(167,139,250,0.2);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .logo svg { width: 20px; height: 20px; }
+      .logo {
+        width: 38px;
+        height: 38px;
+        background: var(--accent-dim);
+        border: 1px solid rgba(167, 139, 250, 0.2);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .logo svg {
+        width: 20px;
+        height: 20px;
+      }
 
-  header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+      header h1 {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+      }
 
-  .sw-badge {
-    margin-left: auto;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 100px;
-    border: 1px solid transparent;
-  }
-  .sw-badge.ok  { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.3); color: var(--success); }
-  .sw-badge.err { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.3); color: var(--danger); }
-  .sw-badge.wait{ background: rgba(255,255,255,0.05); border-color: var(--border); color: var(--text-3); }
+      .sw-badge {
+        margin-left: auto;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 100px;
+        border: 1px solid transparent;
+      }
+      .sw-badge.ok {
+        background: rgba(52, 211, 153, 0.1);
+        border-color: rgba(52, 211, 153, 0.3);
+        color: var(--success);
+      }
+      .sw-badge.err {
+        background: rgba(248, 113, 113, 0.1);
+        border-color: rgba(248, 113, 113, 0.3);
+        color: var(--danger);
+      }
+      .sw-badge.wait {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--border);
+        color: var(--text-3);
+      }
 
-  /* ---- Diagnostics panel ---- */
-  .diag {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    margin-bottom: 20px;
-    font-size: 12px;
-    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-  }
-  .diag-title {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text-3);
-    margin-bottom: 10px;
-    font-family: inherit;
-  }
-  .diag-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    gap: 12px;
-  }
-  .diag-row:last-child { border-bottom: none; }
-  .diag-key { color: var(--text-3); flex-shrink: 0; }
-  .diag-val { color: var(--text); text-align: right; word-break: break-all; }
-  .diag-val.ok   { color: var(--success); }
-  .diag-val.warn { color: var(--warning); }
-  .diag-val.err  { color: var(--danger); }
-  .diag-val.info { color: var(--info); }
+      /* ---- Diagnostics panel ---- */
+      .diag {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px 18px;
+        margin-bottom: 20px;
+        font-size: 12px;
+        font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      }
+      .diag-title {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-3);
+        margin-bottom: 10px;
+        font-family: inherit;
+      }
+      .diag-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        gap: 12px;
+      }
+      .diag-row:last-child {
+        border-bottom: none;
+      }
+      .diag-key {
+        color: var(--text-3);
+        flex-shrink: 0;
+      }
+      .diag-val {
+        color: var(--text);
+        text-align: right;
+        word-break: break-all;
+      }
+      .diag-val.ok {
+        color: var(--success);
+      }
+      .diag-val.warn {
+        color: var(--warning);
+      }
+      .diag-val.err {
+        color: var(--danger);
+      }
+      .diag-val.info {
+        color: var(--info);
+      }
 
-  /* ---- Permission card ---- */
-  .perm-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px;
-    margin-bottom: 20px;
-    display: none;
-  }
-  .perm-card.visible { display: block; }
-  .perm-status { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .perm-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .perm-dot.granted { background: var(--success); }
-  .perm-dot.denied  { background: var(--danger); }
-  .perm-dot.default { background: var(--warning); }
-  .perm-dot.unknown, .perm-dot.unsupported { background: var(--text-3); }
-  .perm-label { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; }
-  .perm-message { font-size: 13px; color: var(--text); line-height: 1.5; }
-  .perm-sub { font-size: 12px; color: var(--text-2); margin-top: 5px; line-height: 1.5; }
-  .perm-action {
-    margin-top: 12px; width: 100%;
-    background: var(--accent-dim);
-    border: 1px solid rgba(167,139,250,0.3);
-    color: var(--accent);
-    font-size: 13px; font-weight: 500; padding: 9px 14px;
-    border-radius: var(--radius-sm); cursor: pointer;
-    transition: background var(--transition); font-family: inherit;
-  }
-  .perm-action:hover { background: var(--accent-glow); }
+      /* ---- Permission card ---- */
+      .perm-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px;
+        margin-bottom: 20px;
+        display: none;
+      }
+      .perm-card.visible {
+        display: block;
+      }
+      .perm-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .perm-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .perm-dot.granted {
+        background: var(--success);
+      }
+      .perm-dot.denied {
+        background: var(--danger);
+      }
+      .perm-dot.default {
+        background: var(--warning);
+      }
+      .perm-dot.unknown,
+      .perm-dot.unsupported {
+        background: var(--text-3);
+      }
+      .perm-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-2);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .perm-message {
+        font-size: 13px;
+        color: var(--text);
+        line-height: 1.5;
+      }
+      .perm-sub {
+        font-size: 12px;
+        color: var(--text-2);
+        margin-top: 5px;
+        line-height: 1.5;
+      }
+      .perm-action {
+        margin-top: 12px;
+        width: 100%;
+        background: var(--accent-dim);
+        border: 1px solid rgba(167, 139, 250, 0.3);
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 500;
+        padding: 9px 14px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: background var(--transition);
+        font-family: inherit;
+      }
+      .perm-action:hover {
+        background: var(--accent-glow);
+      }
 
-  /* ---- iOS banner ---- */
-  .ios-banner { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 20px; display: none; }
-  .ios-banner.visible { display: block; }
-  .ios-banner-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-  .ios-banner-body { font-size: 13px; color: var(--text-2); line-height: 1.5; }
-  .ios-banner-steps { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
-  .ios-banner-steps li { font-size: 12px; color: var(--text-2); list-style: none; display: flex; align-items: flex-start; gap: 6px; }
-  .ios-banner-steps li::before { content: attr(data-n); font-size: 10px; font-weight: 700; background: var(--accent-dim); color: var(--accent); border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+      /* ---- iOS banner ---- */
+      .ios-banner {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px 18px;
+        margin-bottom: 20px;
+        display: none;
+      }
+      .ios-banner.visible {
+        display: block;
+      }
+      .ios-banner-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+      .ios-banner-body {
+        font-size: 13px;
+        color: var(--text-2);
+        line-height: 1.5;
+      }
+      .ios-banner-steps {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .ios-banner-steps li {
+        font-size: 12px;
+        color: var(--text-2);
+        list-style: none;
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .ios-banner-steps li::before {
+        content: attr(data-n);
+        font-size: 10px;
+        font-weight: 700;
+        background: var(--accent-dim);
+        color: var(--accent);
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
 
-  /* ---- Icon picker ---- */
-  .icon-picker {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    margin-bottom: 20px;
-  }
-  .icon-picker-title {
-    font-size: 11px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.8px; color: var(--text-2); margin-bottom: 12px;
-  }
-  .icon-picker-row {
-    display: flex; align-items: center; gap: 12px;
-  }
-  .icon-preview {
-    width: 52px; height: 52px; border-radius: 12px;
-    background: var(--surface-2); border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; overflow: hidden; font-size: 28px;
-    transition: border-color var(--transition);
-  }
-  .icon-preview img { width: 100%; height: 100%; object-fit: cover; }
-  .icon-preview.has-icon { border-color: rgba(167,139,250,0.3); }
+      /* ---- Icon picker ---- */
+      .icon-picker {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px 18px;
+        margin-bottom: 20px;
+      }
+      .icon-picker-title {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-2);
+        margin-bottom: 12px;
+      }
+      .icon-picker-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .icon-preview {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        overflow: hidden;
+        font-size: 28px;
+        transition: border-color var(--transition);
+      }
+      .icon-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .icon-preview.has-icon {
+        border-color: rgba(167, 139, 250, 0.3);
+      }
 
-  .icon-actions { display: flex; flex-direction: column; gap: 6px; flex: 1; }
-  .icon-action-row { display: flex; gap: 6px; }
+      .icon-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+      }
+      .icon-action-row {
+        display: flex;
+        gap: 6px;
+      }
 
-  .icon-btn {
-    flex: 1; background: var(--surface-2); border: 1px solid var(--border);
-    color: var(--text-2); font-size: 12px; font-weight: 500;
-    font-family: inherit; padding: 8px 10px; border-radius: var(--radius-sm);
-    cursor: pointer; transition: all var(--transition); text-align: center;
-    white-space: nowrap;
-  }
-  .icon-btn:hover { border-color: var(--border-hover); color: var(--text); }
-  .icon-btn.danger:hover { border-color: rgba(248,113,113,0.4); color: var(--danger); }
+      .icon-btn {
+        flex: 1;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        color: var(--text-2);
+        font-size: 12px;
+        font-weight: 500;
+        font-family: inherit;
+        padding: 8px 10px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all var(--transition);
+        text-align: center;
+        white-space: nowrap;
+      }
+      .icon-btn:hover {
+        border-color: var(--border-hover);
+        color: var(--text);
+      }
+      .icon-btn.danger:hover {
+        border-color: rgba(248, 113, 113, 0.4);
+        color: var(--danger);
+      }
 
-  .emoji-row {
-    display: none; flex-wrap: wrap; gap: 6px; margin-top: 10px;
-  }
-  .emoji-row.open { display: flex; }
-  .emoji-chip {
-    width: 36px; height: 36px; font-size: 20px;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--surface-2); border: 1px solid var(--border);
-    border-radius: 8px; cursor: pointer; transition: all var(--transition);
-    flex-shrink: 0;
-  }
-  .emoji-chip:hover { border-color: rgba(167,139,250,0.4); background: var(--accent-dim); transform: scale(1.1); }
+      .emoji-row {
+        display: none;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      .emoji-row.open {
+        display: flex;
+      }
+      .emoji-chip {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all var(--transition);
+        flex-shrink: 0;
+      }
+      .emoji-chip:hover {
+        border-color: rgba(167, 139, 250, 0.4);
+        background: var(--accent-dim);
+        transform: scale(1.1);
+      }
 
-  .custom-emoji-wrap {
-    display: flex; gap: 6px; width: 100%; margin-top: 2px;
-  }
-  .custom-emoji-input {
-    flex: 1; background: var(--surface-2); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); color: var(--text); font-size: 20px;
-    font-family: inherit; padding: 5px 10px; outline: none; text-align: center;
-    transition: border-color var(--transition);
-  }
-  .custom-emoji-input:focus { border-color: var(--accent); }
-  .custom-emoji-apply {
-    background: var(--accent-dim); border: 1px solid rgba(167,139,250,0.3);
-    color: var(--accent); font-size: 12px; font-weight: 500; font-family: inherit;
-    padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer;
-    transition: background var(--transition); white-space: nowrap;
-  }
-  .custom-emoji-apply:hover { background: var(--accent-glow); }
+      .custom-emoji-wrap {
+        display: flex;
+        gap: 6px;
+        width: 100%;
+        margin-top: 2px;
+      }
+      .custom-emoji-input {
+        flex: 1;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font-size: 20px;
+        font-family: inherit;
+        padding: 5px 10px;
+        outline: none;
+        text-align: center;
+        transition: border-color var(--transition);
+      }
+      .custom-emoji-input:focus {
+        border-color: var(--accent);
+      }
+      .custom-emoji-apply {
+        background: var(--accent-dim);
+        border: 1px solid rgba(167, 139, 250, 0.3);
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 500;
+        font-family: inherit;
+        padding: 6px 12px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: background var(--transition);
+        white-space: nowrap;
+      }
+      .custom-emoji-apply:hover {
+        background: var(--accent-glow);
+      }
 
-  /* ---- Form ---- */
-  .form-area { display: flex; flex-direction: column; gap: 12px; }
-  label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-2); display: block; margin-bottom: 6px; }
-  .field { position: relative; }
-  input[type="text"], textarea {
-    width: 100%; background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); color: var(--text); font-size: 15px;
-    font-family: inherit; padding: 12px 14px; outline: none;
-    transition: border-color var(--transition), background var(--transition);
-    -webkit-appearance: none;
-  }
-  input[type="text"]:focus, textarea:focus { border-color: var(--accent); background: var(--surface-2); }
-  input[type="text"]::placeholder, textarea::placeholder { color: var(--text-3); }
-  textarea { resize: none; min-height: 90px; line-height: 1.5; }
-  .char-count { position: absolute; bottom: 10px; right: 12px; font-size: 11px; color: var(--text-3); pointer-events: none; }
+      /* ---- Form ---- */
+      .form-area {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-2);
+        display: block;
+        margin-bottom: 6px;
+      }
+      .field {
+        position: relative;
+      }
+      input[type="text"],
+      textarea {
+        width: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font-size: 15px;
+        font-family: inherit;
+        padding: 12px 14px;
+        outline: none;
+        transition:
+          border-color var(--transition),
+          background var(--transition);
+        -webkit-appearance: none;
+      }
+      input[type="text"]:focus,
+      textarea:focus {
+        border-color: var(--accent);
+        background: var(--surface-2);
+      }
+      input[type="text"]::placeholder,
+      textarea::placeholder {
+        color: var(--text-3);
+      }
+      textarea {
+        resize: none;
+        min-height: 90px;
+        line-height: 1.5;
+      }
+      .char-count {
+        position: absolute;
+        bottom: 10px;
+        right: 12px;
+        font-size: 11px;
+        color: var(--text-3);
+        pointer-events: none;
+      }
 
-  .delay-row { display: flex; gap: 8px; }
-  .delay-chip {
-    flex: 1; background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); color: var(--text-2); font-size: 13px;
-    font-family: inherit; padding: 9px 6px; cursor: pointer; text-align: center;
-    transition: all var(--transition); user-select: none; -webkit-user-select: none;
-  }
-  .delay-chip:hover { border-color: var(--border-hover); color: var(--text); }
-  .delay-chip.active { background: var(--accent-dim); border-color: rgba(167,139,250,0.4); color: var(--accent); }
+      .delay-row {
+        display: flex;
+        gap: 8px;
+      }
+      .delay-chip {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text-2);
+        font-size: 13px;
+        font-family: inherit;
+        padding: 9px 6px;
+        cursor: pointer;
+        text-align: center;
+        transition: all var(--transition);
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .delay-chip:hover {
+        border-color: var(--border-hover);
+        color: var(--text);
+      }
+      .delay-chip.active {
+        background: var(--accent-dim);
+        border-color: rgba(167, 139, 250, 0.4);
+        color: var(--accent);
+      }
 
-  .send-btn {
-    margin-top: 8px; width: 100%; background: var(--accent); color: #0f0f0f;
-    border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600;
-    font-family: inherit; padding: 14px; cursor: pointer;
-    transition: opacity var(--transition), transform var(--transition);
-    letter-spacing: -0.2px; display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
-  .send-btn:hover { opacity: 0.9; }
-  .send-btn:active { transform: scale(0.98); }
-  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .send-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+      .send-btn {
+        margin-top: 8px;
+        width: 100%;
+        background: var(--accent);
+        color: #0f0f0f;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 15px;
+        font-weight: 600;
+        font-family: inherit;
+        padding: 14px;
+        cursor: pointer;
+        transition:
+          opacity var(--transition),
+          transform var(--transition);
+        letter-spacing: -0.2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .send-btn:hover {
+        opacity: 0.9;
+      }
+      .send-btn:active {
+        transform: scale(0.98);
+      }
+      .send-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .send-btn svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+      }
 
-  /* ---- History ---- */
-  .history { margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px; }
-  .history-header { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-3); margin-bottom: 12px; }
-  .history-list { display: flex; flex-direction: column; gap: 8px; }
-  .history-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 14px; display: flex; gap: 10px; align-items: flex-start; }
-  .hi-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 5px; }
-  .hi-body { flex: 1; min-width: 0; }
-  .hi-title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
-  .hi-body-text { font-size: 12px; color: var(--text-2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .hi-time { font-size: 11px; color: var(--text-3); flex-shrink: 0; }
-  .empty-history { font-size: 13px; color: var(--text-3); text-align: center; padding: 16px 0; }
+      /* ---- History ---- */
+      .history {
+        margin-top: 28px;
+        border-top: 1px solid var(--border);
+        padding-top: 20px;
+      }
+      .history-header {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+        margin-bottom: 12px;
+      }
+      .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .history-item {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 11px 14px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .hi-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        flex-shrink: 0;
+        margin-top: 5px;
+      }
+      .hi-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .hi-title {
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--text);
+      }
+      .hi-body-text {
+        font-size: 12px;
+        color: var(--text-2);
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .hi-time {
+        font-size: 11px;
+        color: var(--text-3);
+        flex-shrink: 0;
+      }
+      .empty-history {
+        font-size: 13px;
+        color: var(--text-3);
+        text-align: center;
+        padding: 16px 0;
+      }
 
-  /* ---- Toast ---- */
-  .toast {
-    position: fixed; bottom: calc(24px + env(safe-area-inset-bottom)); left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--surface-2); border: 1px solid var(--border);
-    color: var(--text); padding: 11px 20px; border-radius: 100px;
-    font-size: 13px; font-weight: 500; white-space: nowrap;
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
-    opacity: 0; z-index: 100;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+      /* ---- Toast ---- */
+      .toast {
+        position: fixed;
+        bottom: calc(24px + env(safe-area-inset-bottom));
+        left: 50%;
+        transform: translateX(-50%) translateY(80px);
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 11px 20px;
+        border-radius: 100px;
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        transition:
+          transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+          opacity 0.3s ease;
+        opacity: 0;
+        z-index: 100;
+      }
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
 
-  @media (prefers-color-scheme: light) {
-    :root {
-      --bg: #f4f4f5; --surface: #fff; --surface-2: #f9f9f9;
-      --border: rgba(0,0,0,0.08); --border-hover: rgba(0,0,0,0.14);
-      --accent: #7c3aed; --accent-dim: rgba(124,58,237,0.08); --accent-glow: rgba(124,58,237,0.14);
-      --text: #111; --text-2: #666; --text-3: #aaa;
-    }
-    .send-btn { color: #fff; }
-  }
-</style>
-</head>
-<body>
-<div class="app">
-
-  <header>
-    <div class="logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-      </svg>
-    </div>
-    <h1>Notifier</h1>
-    <span class="sw-badge wait" id="sw-badge">SW…</span>
-  </header>
-
-  <!-- Diagnostics -->
-  <div class="diag" id="diag">
-    <div class="diag-title">Diagnostics</div>
-    <div class="diag-row"><span class="diag-key">Notifications API</span><span class="diag-val" id="d-api">—</span></div>
-    <div class="diag-row"><span class="diag-key">Permission</span>       <span class="diag-val" id="d-perm">—</span></div>
-    <div class="diag-row"><span class="diag-key">Service Worker</span>   <span class="diag-val" id="d-sw">—</span></div>
-    <div class="diag-row"><span class="diag-key">SW state</span>         <span class="diag-val" id="d-swstate">—</span></div>
-    <div class="diag-row"><span class="diag-key">Icon</span>              <span class="diag-val" id="d-icon">default</span></div>
-    <div class="diag-row"><span class="diag-key">Last send</span>        <span class="diag-val" id="d-last">—</span></div>
-    <div class="diag-row"><span class="diag-key">Last error</span>       <span class="diag-val err" id="d-err">none</span></div>
-  </div>
-
-  <!-- iOS banner -->
-  <div class="ios-banner" id="ios-banner">
-    <div class="ios-banner-title">📲 Enable notifications on iOS</div>
-    <div class="ios-banner-body">iOS requires this app to be added to your Home Screen before notifications can be enabled.</div>
-    <ul class="ios-banner-steps">
-      <li data-n="1">Tap the <strong>Share</strong> button in Safari's toolbar</li>
-      <li data-n="2">Scroll down and tap <strong>Add to Home Screen</strong></li>
-      <li data-n="3">Open the app from your Home Screen and grant permission</li>
-    </ul>
-  </div>
-
-  <!-- Permission card -->
-  <div class="perm-card" id="perm-card">
-    <div class="perm-status">
-      <div class="perm-dot" id="perm-dot"></div>
-      <div class="perm-label" id="perm-label">Checking…</div>
-    </div>
-    <div class="perm-message" id="perm-message"></div>
-    <div class="perm-sub" id="perm-sub"></div>
-    <button class="perm-action" id="perm-btn" style="display:none">Enable notifications</button>
-  </div>
-
-  <!-- Icon picker -->
-  <div class="icon-picker">
-    <div class="icon-picker-title">Notification icon</div>
-    <div class="icon-picker-row">
-      <div class="icon-preview" id="icon-preview">
-        <span id="icon-placeholder" style="font-size:22px;color:var(--text-3)">🔔</span>
-        <img id="icon-img" style="display:none" alt="icon">
-      </div>
-      <div class="icon-actions">
-        <div class="icon-action-row">
-          <button class="icon-btn" id="btn-upload-img" title="Upload an image file">📁 Upload image</button>
-          <button class="icon-btn" id="btn-pick-emoji" title="Choose an emoji">😀 Pick emoji</button>
-          <button class="icon-btn danger" id="btn-clear-icon" title="Remove custom icon">✕</button>
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f4f4f5;
+          --surface: #fff;
+          --surface-2: #f9f9f9;
+          --border: rgba(0, 0, 0, 0.08);
+          --border-hover: rgba(0, 0, 0, 0.14);
+          --accent: #7c3aed;
+          --accent-dim: rgba(124, 58, 237, 0.08);
+          --accent-glow: rgba(124, 58, 237, 0.14);
+          --text: #111;
+          --text-2: #666;
+          --text-3: #aaa;
+        }
+        .send-btn {
+          color: #fff;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <div class="logo">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            style="color: var(--accent)"
+          >
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
         </div>
-        <div id="icon-status" style="font-size:11px;color:var(--text-3);margin-top:2px">Default browser icon</div>
+        <h1>Notifier</h1>
+        <span class="sw-badge wait" id="sw-badge">SW…</span>
+      </header>
+
+      <!-- Diagnostics -->
+      <div class="diag" id="diag">
+        <div class="diag-title">Diagnostics</div>
+        <div class="diag-row">
+          <span class="diag-key">Notifications API</span
+          ><span class="diag-val" id="d-api">—</span>
+        </div>
+        <div class="diag-row">
+          <span class="diag-key">Permission</span>
+          <span class="diag-val" id="d-perm">—</span>
+        </div>
+        <div class="diag-row">
+          <span class="diag-key">Service Worker</span>
+          <span class="diag-val" id="d-sw">—</span>
+        </div>
+        <div class="diag-row">
+          <span class="diag-key">SW state</span>
+          <span class="diag-val" id="d-swstate">—</span>
+        </div>
+        <div class="diag-row">
+          <span class="diag-key">Icon</span>
+          <span class="diag-val" id="d-icon">default</span>
+        </div>
+        <div class="diag-row">
+          <span class="diag-key">Last send</span>
+          <span class="diag-val" id="d-last">—</span>
+        </div>
+        <div class="diag-row">
+          <span class="diag-key">Last error</span>
+          <span class="diag-val err" id="d-err">none</span>
+        </div>
+      </div>
+
+      <!-- iOS banner -->
+      <div class="ios-banner" id="ios-banner">
+        <div class="ios-banner-title">📲 Enable notifications on iOS</div>
+        <div class="ios-banner-body">
+          iOS requires this app to be added to your Home Screen before
+          notifications can be enabled.
+        </div>
+        <ul class="ios-banner-steps">
+          <li data-n="1">
+            Tap the <strong>Share</strong> button in Safari's toolbar
+          </li>
+          <li data-n="2">
+            Scroll down and tap <strong>Add to Home Screen</strong>
+          </li>
+          <li data-n="3">
+            Open the app from your Home Screen and grant permission
+          </li>
+        </ul>
+      </div>
+
+      <!-- Permission card -->
+      <div class="perm-card" id="perm-card">
+        <div class="perm-status">
+          <div class="perm-dot" id="perm-dot"></div>
+          <div class="perm-label" id="perm-label">Checking…</div>
+        </div>
+        <div class="perm-message" id="perm-message"></div>
+        <div class="perm-sub" id="perm-sub"></div>
+        <button class="perm-action" id="perm-btn" style="display: none">
+          Enable notifications
+        </button>
+      </div>
+
+      <!-- Icon picker -->
+      <div class="icon-picker">
+        <div class="icon-picker-title">Notification icon</div>
+        <div class="icon-picker-row">
+          <div class="icon-preview" id="icon-preview">
+            <span
+              id="icon-placeholder"
+              style="font-size: 22px; color: var(--text-3)"
+              >🔔</span
+            >
+            <img id="icon-img" style="display: none" alt="icon" />
+          </div>
+          <div class="icon-actions">
+            <div class="icon-action-row">
+              <button
+                class="icon-btn"
+                id="btn-upload-img"
+                title="Upload an image file"
+              >
+                📁 Upload image
+              </button>
+              <button
+                class="icon-btn"
+                id="btn-pick-emoji"
+                title="Choose an emoji"
+              >
+                😀 Pick emoji
+              </button>
+              <button
+                class="icon-btn danger"
+                id="btn-clear-icon"
+                title="Remove custom icon"
+              >
+                ✕
+              </button>
+            </div>
+            <div
+              id="icon-status"
+              style="font-size: 11px; color: var(--text-3); margin-top: 2px"
+            >
+              Default browser icon
+            </div>
+          </div>
+        </div>
+
+        <!-- Emoji picker panel -->
+        <div class="emoji-row" id="emoji-row">
+          <!-- Quick picks -->
+          <div class="emoji-chip" data-emoji="🔔">🔔</div>
+          <div class="emoji-chip" data-emoji="⚡">⚡</div>
+          <div class="emoji-chip" data-emoji="🚀">🚀</div>
+          <div class="emoji-chip" data-emoji="✅">✅</div>
+          <div class="emoji-chip" data-emoji="⚠️">⚠️</div>
+          <div class="emoji-chip" data-emoji="❤️">❤️</div>
+          <div class="emoji-chip" data-emoji="🎉">🎉</div>
+          <div class="emoji-chip" data-emoji="💬">💬</div>
+          <div class="emoji-chip" data-emoji="📧">📧</div>
+          <div class="emoji-chip" data-emoji="🔒">🔒</div>
+          <div class="emoji-chip" data-emoji="🛒">🛒</div>
+          <div class="emoji-chip" data-emoji="💡">💡</div>
+          <!-- Custom emoji input -->
+          <div class="custom-emoji-wrap">
+            <input
+              class="custom-emoji-input"
+              id="custom-emoji"
+              placeholder="✏️"
+              maxlength="4"
+            />
+            <button class="custom-emoji-apply" id="apply-custom-emoji">
+              Use this
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden file input -->
+      <input
+        type="file"
+        id="icon-file-input"
+        accept="image/*"
+        style="display: none"
+      />
+
+      <!-- Form -->
+      <div class="form-area">
+        <div>
+          <label for="notif-title">Title</label>
+          <input
+            type="text"
+            id="notif-title"
+            placeholder="Notification title"
+            maxlength="80"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+        <div>
+          <label for="notif-body">Message</label>
+          <div class="field">
+            <textarea
+              id="notif-body"
+              placeholder="Write your notification message here…"
+              maxlength="200"
+            ></textarea>
+            <span class="char-count" id="char-count">200</span>
+          </div>
+        </div>
+        <div>
+          <label>Delay</label>
+          <div class="delay-row" id="delay-row">
+            <div class="delay-chip active" data-delay="0">Now</div>
+            <div class="delay-chip" data-delay="5">5 sec</div>
+            <div class="delay-chip" data-delay="10">10 sec</div>
+            <div class="delay-chip" data-delay="30">30 sec</div>
+            <div class="delay-chip" data-delay="60">1 min</div>
+          </div>
+        </div>
+        <button class="send-btn" id="send-btn" disabled>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+          Send notification
+        </button>
+      </div>
+
+      <!-- History -->
+      <div class="history">
+        <div class="history-header">Sent</div>
+        <div class="history-list" id="history-list">
+          <div class="empty-history">No notifications sent yet</div>
+        </div>
       </div>
     </div>
 
-    <!-- Emoji picker panel -->
-    <div class="emoji-row" id="emoji-row">
-      <!-- Quick picks -->
-      <div class="emoji-chip" data-emoji="🔔">🔔</div>
-      <div class="emoji-chip" data-emoji="⚡">⚡</div>
-      <div class="emoji-chip" data-emoji="🚀">🚀</div>
-      <div class="emoji-chip" data-emoji="✅">✅</div>
-      <div class="emoji-chip" data-emoji="⚠️">⚠️</div>
-      <div class="emoji-chip" data-emoji="❤️">❤️</div>
-      <div class="emoji-chip" data-emoji="🎉">🎉</div>
-      <div class="emoji-chip" data-emoji="💬">💬</div>
-      <div class="emoji-chip" data-emoji="📧">📧</div>
-      <div class="emoji-chip" data-emoji="🔒">🔒</div>
-      <div class="emoji-chip" data-emoji="🛒">🛒</div>
-      <div class="emoji-chip" data-emoji="💡">💡</div>
-      <!-- Custom emoji input -->
-      <div class="custom-emoji-wrap">
-        <input class="custom-emoji-input" id="custom-emoji" placeholder="✏️" maxlength="4">
-        <button class="custom-emoji-apply" id="apply-custom-emoji">Use this</button>
-      </div>
-    </div>
-  </div>
+    <div class="toast" id="toast"></div>
 
-  <!-- Hidden file input -->
-  <input type="file" id="icon-file-input" accept="image/*" style="display:none">
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const permCard = $("perm-card");
+      const permDot = $("perm-dot");
+      const permLabel = $("perm-label");
+      const permMessage = $("perm-message");
+      const permSub = $("perm-sub");
+      const permBtn = $("perm-btn");
+      const sendBtn = $("send-btn");
+      const titleInput = $("notif-title");
+      const bodyInput = $("notif-body");
+      const charCount = $("char-count");
+      const historyList = $("history-list");
+      const swBadge = $("sw-badge");
+      const iosBanner = $("ios-banner");
+      const toast = $("toast");
 
-  <!-- Form -->
-  <div class="form-area">
-    <div>
-      <label for="notif-title">Title</label>
-      <input type="text" id="notif-title" placeholder="Notification title" maxlength="80" autocomplete="off" spellcheck="false">
-    </div>
-    <div>
-      <label for="notif-body">Message</label>
-      <div class="field">
-        <textarea id="notif-body" placeholder="Write your notification message here…" maxlength="200"></textarea>
-        <span class="char-count" id="char-count">200</span>
-      </div>
-    </div>
-    <div>
-      <label>Delay</label>
-      <div class="delay-row" id="delay-row">
-        <div class="delay-chip active" data-delay="0">Now</div>
-        <div class="delay-chip" data-delay="5">5 sec</div>
-        <div class="delay-chip" data-delay="10">10 sec</div>
-        <div class="delay-chip" data-delay="30">30 sec</div>
-        <div class="delay-chip" data-delay="60">1 min</div>
-      </div>
-    </div>
-    <button class="send-btn" id="send-btn" disabled>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-      </svg>
-      Send notification
-    </button>
-  </div>
-
-  <!-- History -->
-  <div class="history">
-    <div class="history-header">Sent</div>
-    <div class="history-list" id="history-list">
-      <div class="empty-history">No notifications sent yet</div>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-  const $ = id => document.getElementById(id);
-  const permCard    = $('perm-card');
-  const permDot     = $('perm-dot');
-  const permLabel   = $('perm-label');
-  const permMessage = $('perm-message');
-  const permSub     = $('perm-sub');
-  const permBtn     = $('perm-btn');
-  const sendBtn     = $('send-btn');
-  const titleInput  = $('notif-title');
-  const bodyInput   = $('notif-body');
-  const charCount   = $('char-count');
-  const historyList = $('history-list');
-  const swBadge     = $('sw-badge');
-  const iosBanner   = $('ios-banner');
-  const toast       = $('toast');
-
-  // Diag helpers
-  const diag = {
-    set(id, text, cls) {
-      const el = $(id);
-      el.textContent = text;
-      el.className = 'diag-val' + (cls ? ' ' + cls : '');
-    }
-  };
-
-  let selectedDelay = 0;
-  let swReg = null;
-  let sentItems = [];
-
-  // ---- Icon state ----
-  let customIconDataUrl = null; // null = use default (no icon)
-
-  const iconPreview  = $('icon-preview');
-  const iconImg      = $('icon-img');
-  const iconPlaceholder = $('icon-placeholder');
-  const iconStatus   = $('icon-status');
-  const emojiRow     = $('emoji-row');
-  const iconFileInput = $('icon-file-input');
-
-  const ICON_STORAGE_KEY = 'notifier_custom_icon';
-
-  function setIcon(dataUrl, label) {
-    customIconDataUrl = dataUrl;
-    if (dataUrl) {
-      iconImg.src = dataUrl;
-      iconImg.style.display = 'block';
-      iconPlaceholder.style.display = 'none';
-      iconPreview.classList.add('has-icon');
-      iconStatus.textContent = label || 'Custom icon set ✓';
-      iconStatus.style.color = 'var(--success)';
-    } else {
-      iconImg.style.display = 'none';
-      iconImg.src = '';
-      iconPlaceholder.style.display = '';
-      iconPreview.classList.remove('has-icon');
-      iconStatus.textContent = 'Default browser icon';
-      iconStatus.style.color = 'var(--text-3)';
-    }
-    try { localStorage.setItem(ICON_STORAGE_KEY, dataUrl || ''); } catch(_) {}
-    diag.set('d-icon', dataUrl ? 'custom (' + Math.round(dataUrl.length / 1024) + ' KB)' : 'default', dataUrl ? 'ok' : '');
-  }
-
-  function loadStoredIcon() {
-    try {
-      const stored = localStorage.getItem(ICON_STORAGE_KEY);
-      if (stored) setIcon(stored, 'Saved icon restored ✓');
-    } catch(_) {}
-  }
-
-  // Render emoji/text to a 192×192 canvas and return a PNG data URL
-  function emojiToPng(emoji) {
-    const SIZE = 192;
-    const c = document.createElement('canvas');
-    c.width = c.height = SIZE;
-    const ctx = c.getContext('2d');
-    // Dark rounded background
-    ctx.fillStyle = '#1a1a1a';
-    roundRect(ctx, 0, 0, SIZE, SIZE, 32);
-    ctx.fill();
-    // Emoji centred
-    ctx.font = `${SIZE * 0.55}px serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(emoji, SIZE / 2, SIZE / 2 + SIZE * 0.04);
-    return c.toDataURL('image/png');
-  }
-
-  function roundRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
-  }
-
-  // Resize and convert an arbitrary image File to a 192×192 PNG data URL
-  function imageFileToPng(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = ev => {
-        const img = new Image();
-        img.onload = () => {
-          const SIZE = 192;
-          const c = document.createElement('canvas');
-          c.width = c.height = SIZE;
-          const ctx = c.getContext('2d');
-          // Crop to square (centre)
-          const min = Math.min(img.width, img.height);
-          const sx = (img.width  - min) / 2;
-          const sy = (img.height - min) / 2;
-          ctx.drawImage(img, sx, sy, min, min, 0, 0, SIZE, SIZE);
-          resolve(c.toDataURL('image/png'));
-        };
-        img.onerror = reject;
-        img.src = ev.target.result;
+      // Diag helpers
+      const diag = {
+        set(id, text, cls) {
+          const el = $(id);
+          el.textContent = text;
+          el.className = "diag-val" + (cls ? " " + cls : "");
+        },
       };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
 
-  // ---- Icon picker events ----
-  $('btn-upload-img').addEventListener('click', () => {
-    emojiRow.classList.remove('open');
-    iconFileInput.value = '';
-    iconFileInput.click();
-  });
+      let selectedDelay = 0;
+      let swReg = null;
+      let sentItems = [];
 
-  iconFileInput.addEventListener('change', async () => {
-    const file = iconFileInput.files[0];
-    if (!file) return;
-    try {
-      const png = await imageFileToPng(file);
-      setIcon(png, `Image: ${file.name}`);
-    } catch(e) {
-      showToast('⚠ Could not load image');
-    }
-  });
+      // ---- Icon state ----
+      let customIconDataUrl = null; // null = use default (no icon)
 
-  $('btn-pick-emoji').addEventListener('click', () => {
-    emojiRow.classList.toggle('open');
-  });
+      const iconPreview = $("icon-preview");
+      const iconImg = $("icon-img");
+      const iconPlaceholder = $("icon-placeholder");
+      const iconStatus = $("icon-status");
+      const emojiRow = $("emoji-row");
+      const iconFileInput = $("icon-file-input");
 
-  $('btn-clear-icon').addEventListener('click', () => {
-    setIcon(null);
-    emojiRow.classList.remove('open');
-  });
+      const ICON_STORAGE_KEY = "notifier_custom_icon";
 
-  emojiRow.addEventListener('click', e => {
-    const chip = e.target.closest('.emoji-chip');
-    if (!chip) return;
-    const emoji = chip.dataset.emoji;
-    setIcon(emojiToPng(emoji), `Emoji: ${emoji}`);
-    emojiRow.classList.remove('open');
-  });
+      function setIcon(dataUrl, label) {
+        customIconDataUrl = dataUrl;
+        if (dataUrl) {
+          iconImg.src = dataUrl;
+          iconImg.style.display = "block";
+          iconPlaceholder.style.display = "none";
+          iconPreview.classList.add("has-icon");
+          iconStatus.textContent = label || "Custom icon set ✓";
+          iconStatus.style.color = "var(--success)";
+        } else {
+          iconImg.style.display = "none";
+          iconImg.src = "";
+          iconPlaceholder.style.display = "";
+          iconPreview.classList.remove("has-icon");
+          iconStatus.textContent = "Default browser icon";
+          iconStatus.style.color = "var(--text-3)";
+        }
+        try {
+          localStorage.setItem(ICON_STORAGE_KEY, dataUrl || "");
+        } catch (_) {}
+        diag.set(
+          "d-icon",
+          dataUrl
+            ? "custom (" + Math.round(dataUrl.length / 1024) + " KB)"
+            : "default",
+          dataUrl ? "ok" : "",
+        );
+      }
 
-  $('apply-custom-emoji').addEventListener('click', () => {
-    const val = $('custom-emoji').value.trim();
-    if (!val) return;
-    setIcon(emojiToPng(val), `Emoji: ${val}`);
-    $('custom-emoji').value = '';
-    emojiRow.classList.remove('open');
-  });
+      function loadStoredIcon() {
+        try {
+          const stored = localStorage.getItem(ICON_STORAGE_KEY);
+          if (stored) setIcon(stored, "Saved icon restored ✓");
+        } catch (_) {}
+      }
 
-  const isIOS       = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const isSafari    = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-  const notifSupported = 'Notification' in window;
+      // ---- Badge generation ----
+      // Takes any data URL and produces a 96×96 monochrome PNG suitable for the notification badge.
+      // Android renders the badge in white on a tinted background, so we threshold to pure white-on-transparent.
+      function iconToBadge(dataUrl) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            const SIZE = 96;
+            const c = document.createElement("canvas");
+            c.width = c.height = SIZE;
+            const ctx = c.getContext("2d");
+            ctx.drawImage(img, 0, 0, SIZE, SIZE);
+            const imageData = ctx.getImageData(0, 0, SIZE, SIZE);
+            const d = imageData.data;
+            // Convert to monochrome: luminance > 40 → white opaque, else transparent
+            for (let i = 0; i < d.length; i += 4) {
+              const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+              const visible = d[i + 3] > 30 && lum > 40;
+              d[i] = d[i + 1] = d[i + 2] = 255;
+              d[i + 3] = visible ? 255 : 0;
+            }
+            ctx.putImageData(imageData, 0, 0);
+            resolve(c.toDataURL("image/png"));
+          };
+          img.onerror = () => resolve(null);
+          img.src = dataUrl;
+        });
+      }
 
-  // ---- Diagnostics init ----
-  diag.set('d-api',  notifSupported ? 'supported' : 'NOT supported', notifSupported ? 'ok' : 'err');
-  diag.set('d-perm', notifSupported ? Notification.permission : 'n/a',
-    notifSupported ? (Notification.permission === 'granted' ? 'ok' : Notification.permission === 'denied' ? 'err' : 'warn') : 'err');
-  diag.set('d-sw',   'serviceWorker' in navigator ? 'supported' : 'NOT supported', 'serviceWorker' in navigator ? 'ok' : 'err');
-  diag.set('d-swstate', '—', '');
+      // Render emoji/text to a 192×192 canvas and return a PNG data URL
+      function emojiToPng(emoji) {
+        const SIZE = 192;
+        const c = document.createElement("canvas");
+        c.width = c.height = SIZE;
+        const ctx = c.getContext("2d");
+        // Dark rounded background
+        ctx.fillStyle = "#1a1a1a";
+        roundRect(ctx, 0, 0, SIZE, SIZE, 32);
+        ctx.fill();
+        // Emoji centred
+        ctx.font = `${SIZE * 0.55}px serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(emoji, SIZE / 2, SIZE / 2 + SIZE * 0.04);
+        return c.toDataURL("image/png");
+      }
 
-  // ---- Service Worker ----
-  async function registerSW() {
-    if (!('serviceWorker' in navigator)) {
-      swBadge.textContent = 'No SW'; swBadge.className = 'sw-badge err';
-      diag.set('d-swstate', 'not supported', 'err');
-      return;
-    }
-    try {
-      swReg = await navigator.serviceWorker.register('sw.js');
+      function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+      }
 
-      // Wait for the SW to become active
-      await waitForActiveSW(swReg);
+      // Resize and convert an arbitrary image File to a 192×192 PNG data URL
+      function imageFileToPng(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+              const SIZE = 192;
+              const c = document.createElement("canvas");
+              c.width = c.height = SIZE;
+              const ctx = c.getContext("2d");
+              // Crop to square (centre)
+              const min = Math.min(img.width, img.height);
+              const sx = (img.width - min) / 2;
+              const sy = (img.height - min) / 2;
+              ctx.drawImage(img, sx, sy, min, min, 0, 0, SIZE, SIZE);
+              resolve(c.toDataURL("image/png"));
+            };
+            img.onerror = reject;
+            img.src = ev.target.result;
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
 
-      swBadge.textContent = 'PWA ✓'; swBadge.className = 'sw-badge ok';
-      diag.set('d-sw', 'supported', 'ok');
-      diag.set('d-swstate', swReg.active?.state || 'active', 'ok');
-    } catch(e) {
-      swBadge.textContent = 'SW error'; swBadge.className = 'sw-badge err';
-      diag.set('d-swstate', 'error: ' + e.message, 'err');
-      diag.set('d-err', e.message, 'err');
-    }
-  }
+      // ---- Icon picker events ----
+      $("btn-upload-img").addEventListener("click", () => {
+        emojiRow.classList.remove("open");
+        iconFileInput.value = "";
+        iconFileInput.click();
+      });
 
-  function waitForActiveSW(reg) {
-    return new Promise(resolve => {
-      if (reg.active) { resolve(); return; }
-      const target = reg.installing || reg.waiting;
-      if (!target) { resolve(); return; }
-      target.addEventListener('statechange', function handler() {
-        if (this.state === 'activated') {
-          this.removeEventListener('statechange', handler);
-          resolve();
+      iconFileInput.addEventListener("change", async () => {
+        const file = iconFileInput.files[0];
+        if (!file) return;
+        try {
+          const png = await imageFileToPng(file);
+          setIcon(png, `Image: ${file.name}`);
+        } catch (e) {
+          showToast("⚠ Could not load image");
         }
       });
-    });
-  }
 
-  // ---- Permission UI ----
-  function updatePermUI(state) {
-    permCard.classList.add('visible');
-    permDot.className = 'perm-dot ' + state;
-    diag.set('d-perm', state, state === 'granted' ? 'ok' : state === 'denied' ? 'err' : 'warn');
+      $("btn-pick-emoji").addEventListener("click", () => {
+        emojiRow.classList.toggle("open");
+      });
 
-    const map = {
-      granted:     { label:'Allowed',           msg:'Notifications enabled. You\'re good to go.',                        sub:'', btn:false },
-      denied:      { label:'Blocked',            msg:'Notifications are blocked in your browser.',                        sub:'Go to the address bar → click the lock icon → Notifications → Allow, then refresh.', btn:false },
-      default:     { label:'Permission needed',  msg:'Click below to allow notifications.',                               sub:'Your browser will show a confirmation prompt.', btn:true },
-      unsupported: { label:'Not supported',      msg:'Notifications are not available in this browser or context.',       sub:'', btn:false },
-    };
-    const m = map[state] || map.unsupported;
-    permLabel.textContent   = m.label;
-    permMessage.textContent = m.msg;
-    permSub.textContent     = m.sub;
-    permBtn.style.display   = m.btn ? 'block' : 'none';
-    sendBtn.disabled        = state !== 'granted';
-  }
+      $("btn-clear-icon").addEventListener("click", () => {
+        setIcon(null);
+        emojiRow.classList.remove("open");
+      });
 
-  async function requestPermission() {
-    if (!notifSupported) return;
-    try {
-      const result = await Notification.requestPermission();
-      updatePermUI(result);
-    } catch(e) {
-      diag.set('d-err', 'requestPermission: ' + e.message, 'err');
-      updatePermUI('unsupported');
-    }
-  }
+      emojiRow.addEventListener("click", (e) => {
+        const chip = e.target.closest(".emoji-chip");
+        if (!chip) return;
+        const emoji = chip.dataset.emoji;
+        setIcon(emojiToPng(emoji), `Emoji: ${emoji}`);
+        emojiRow.classList.remove("open");
+      });
 
-  function initPermission() {
-    if (isIOS && isSafari && !isStandalone) {
-      iosBanner.classList.add('visible');
-      updatePermUI('unsupported');
-      return;
-    }
-    if (!notifSupported) { updatePermUI('unsupported'); return; }
-    updatePermUI(Notification.permission);
-  }
+      $("apply-custom-emoji").addEventListener("click", () => {
+        const val = $("custom-emoji").value.trim();
+        if (!val) return;
+        setIcon(emojiToPng(val), `Emoji: ${val}`);
+        $("custom-emoji").value = "";
+        emojiRow.classList.remove("open");
+      });
 
-  // ---- Fire notification ----
-  async function fireNotification(title, body) {
-    diag.set('d-err', 'none', '');
-    const icon = customIconDataUrl || undefined;
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(
+        navigator.userAgent,
+      );
+      const isStandalone =
+        window.navigator.standalone === true ||
+        window.matchMedia("(display-mode: standalone)").matches;
+      const notifSupported = "Notification" in window;
 
-    try {
-      if (Notification.permission !== 'granted') {
-        throw new Error('permission is ' + Notification.permission);
-      }
+      // ---- Diagnostics init ----
+      diag.set(
+        "d-api",
+        notifSupported ? "supported" : "NOT supported",
+        notifSupported ? "ok" : "err",
+      );
+      diag.set(
+        "d-perm",
+        notifSupported ? Notification.permission : "n/a",
+        notifSupported
+          ? Notification.permission === "granted"
+            ? "ok"
+            : Notification.permission === "denied"
+              ? "err"
+              : "warn"
+          : "err",
+      );
+      diag.set(
+        "d-sw",
+        "serviceWorker" in navigator ? "supported" : "NOT supported",
+        "serviceWorker" in navigator ? "ok" : "err",
+      );
+      diag.set("d-swstate", "—", "");
 
-      // Strategy 1: route through active SW via postMessage (most reliable on desktop)
-      if (swReg && swReg.active) {
-        diag.set('d-last', 'via SW postMessage', 'info');
-        swReg.active.postMessage({ type: 'SHOW_NOTIFICATION', title, body, icon });
-        return;
-      }
-
-      // Strategy 2: SW registration exists — use showNotification directly
-      if (swReg) {
-        const sw = swReg.active || swReg.installing || swReg.waiting;
-        if (sw) {
-          diag.set('d-last', 'via swReg.showNotification', 'info');
-          const opts = { body, tag: 'n-' + Date.now() };
-          if (icon) opts.icon = icon;
-          await swReg.showNotification(title || 'Notification', opts);
+      // ---- Service Worker ----
+      async function registerSW() {
+        if (!("serviceWorker" in navigator)) {
+          swBadge.textContent = "No SW";
+          swBadge.className = "sw-badge err";
+          diag.set("d-swstate", "not supported", "err");
           return;
+        }
+        try {
+          swReg = await navigator.serviceWorker.register("sw.js");
+
+          // Wait for the SW to become active
+          await waitForActiveSW(swReg);
+
+          swBadge.textContent = "PWA ✓";
+          swBadge.className = "sw-badge ok";
+          diag.set("d-sw", "supported", "ok");
+          diag.set("d-swstate", swReg.active?.state || "active", "ok");
+        } catch (e) {
+          swBadge.textContent = "SW error";
+          swBadge.className = "sw-badge err";
+          diag.set("d-swstate", "error: " + e.message, "err");
+          diag.set("d-err", e.message, "err");
         }
       }
 
-      // Strategy 3: Fallback — plain Notification constructor (no SW)
-      diag.set('d-last', 'via new Notification()', 'warn');
-      const opts = { body, tag: 'n-' + Date.now() };
-      if (icon) opts.icon = icon;
-      const n = new Notification(title || 'Notification', opts);
-      n.onerror = e => diag.set('d-err', 'Notification error: ' + (e.message || JSON.stringify(e)), 'err');
+      function waitForActiveSW(reg) {
+        return new Promise((resolve) => {
+          if (reg.active) {
+            resolve();
+            return;
+          }
+          const target = reg.installing || reg.waiting;
+          if (!target) {
+            resolve();
+            return;
+          }
+          target.addEventListener("statechange", function handler() {
+            if (this.state === "activated") {
+              this.removeEventListener("statechange", handler);
+              resolve();
+            }
+          });
+        });
+      }
 
-    } catch(e) {
-      diag.set('d-err', e.message || String(e), 'err');
-      showToast('⚠ Error — check diagnostics');
-    }
-  }
+      // ---- Permission UI ----
+      function updatePermUI(state) {
+        permCard.classList.add("visible");
+        permDot.className = "perm-dot " + state;
+        diag.set(
+          "d-perm",
+          state,
+          state === "granted" ? "ok" : state === "denied" ? "err" : "warn",
+        );
 
-  // ---- Delay chips ----
-  $('delay-row').addEventListener('click', e => {
-    const chip = e.target.closest('.delay-chip');
-    if (!chip) return;
-    document.querySelectorAll('.delay-chip').forEach(c => c.classList.remove('active'));
-    chip.classList.add('active');
-    selectedDelay = parseInt(chip.dataset.delay, 10);
-  });
+        const map = {
+          granted: {
+            label: "Allowed",
+            msg: "Notifications enabled. You're good to go.",
+            sub: "",
+            btn: false,
+          },
+          denied: {
+            label: "Blocked",
+            msg: "Notifications are blocked in your browser.",
+            sub: "Go to the address bar → click the lock icon → Notifications → Allow, then refresh.",
+            btn: false,
+          },
+          default: {
+            label: "Permission needed",
+            msg: "Click below to allow notifications.",
+            sub: "Your browser will show a confirmation prompt.",
+            btn: true,
+          },
+          unsupported: {
+            label: "Not supported",
+            msg: "Notifications are not available in this browser or context.",
+            sub: "",
+            btn: false,
+          },
+        };
+        const m = map[state] || map.unsupported;
+        permLabel.textContent = m.label;
+        permMessage.textContent = m.msg;
+        permSub.textContent = m.sub;
+        permBtn.style.display = m.btn ? "block" : "none";
+        sendBtn.disabled = state !== "granted";
+      }
 
-  // ---- Char count ----
-  bodyInput.addEventListener('input', () => {
-    const rem = 200 - bodyInput.value.length;
-    charCount.textContent = rem;
-    charCount.style.color = rem < 20 ? 'var(--warning)' : 'var(--text-3)';
-  });
+      async function requestPermission() {
+        if (!notifSupported) return;
+        try {
+          const result = await Notification.requestPermission();
+          updatePermUI(result);
+        } catch (e) {
+          diag.set("d-err", "requestPermission: " + e.message, "err");
+          updatePermUI("unsupported");
+        }
+      }
 
-  // ---- Send ----
-  permBtn.addEventListener('click', requestPermission);
+      function initPermission() {
+        if (isIOS && isSafari && !isStandalone) {
+          iosBanner.classList.add("visible");
+          updatePermUI("unsupported");
+          return;
+        }
+        if (!notifSupported) {
+          updatePermUI("unsupported");
+          return;
+        }
+        updatePermUI(Notification.permission);
+      }
 
-  sendBtn.addEventListener('click', async () => {
-    const title = titleInput.value.trim() || 'Notification';
-    const body  = bodyInput.value.trim();
+      // ---- Fire notification ----
+      async function fireNotification(title, body) {
+        diag.set("d-err", "none", "");
+        const icon = customIconDataUrl || undefined;
+        const badge = customIconDataUrl
+          ? await iconToBadge(customIconDataUrl)
+          : undefined;
 
-    addHistory(title, body);
-    titleInput.value = '';
-    bodyInput.value = '';
-    charCount.textContent = '200';
+        try {
+          if (Notification.permission !== "granted") {
+            throw new Error("permission is " + Notification.permission);
+          }
 
-    if (selectedDelay > 0) {
-      showToast(`⏱ Sending in ${selectedDelay < 60 ? selectedDelay + 's' : '1 min'}…`);
-      setTimeout(() => fireNotification(title, body), selectedDelay * 1000);
-    } else {
-      await fireNotification(title, body);
-      const err = $('d-err').textContent;
-      showToast(err === 'none' ? '✓ Sent' : '⚠ Error — see diagnostics');
-    }
-  });
+          // Strategy 1: route through active SW via postMessage (most reliable on desktop)
+          if (swReg && swReg.active) {
+            diag.set("d-last", "via SW postMessage", "info");
+            swReg.active.postMessage({
+              type: "SHOW_NOTIFICATION",
+              title,
+              body,
+              icon,
+              badge,
+            });
+            return;
+          }
 
-  document.addEventListener('keydown', e => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !sendBtn.disabled) sendBtn.click();
-  });
+          // Strategy 2: SW registration exists — use showNotification directly
+          if (swReg) {
+            const sw = swReg.active || swReg.installing || swReg.waiting;
+            if (sw) {
+              diag.set("d-last", "via swReg.showNotification", "info");
+              const opts = { body, tag: "n-" + Date.now() };
+              if (icon) opts.icon = icon;
+              if (badge) opts.badge = badge;
+              await swReg.showNotification(title || "Notification", opts);
+              return;
+            }
+          }
 
-  // ---- Toast ----
-  let toastTimer;
-  function showToast(msg) {
-    toast.textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
-  }
+          // Strategy 3: Fallback — plain Notification constructor (no SW)
+          diag.set("d-last", "via new Notification()", "warn");
+          const opts = { body, tag: "n-" + Date.now() };
+          if (icon) opts.icon = icon;
+          if (badge) opts.badge = badge;
+          const n = new Notification(title || "Notification", opts);
+          n.onerror = (e) =>
+            diag.set(
+              "d-err",
+              "Notification error: " + (e.message || JSON.stringify(e)),
+              "err",
+            );
+        } catch (e) {
+          diag.set("d-err", e.message || String(e), "err");
+          showToast("⚠ Error — check diagnostics");
+        }
+      }
 
-  // ---- History ----
-  function addHistory(title, body) {
-    sentItems.unshift({ title: title || 'Notification', body: body || '', time: new Date() });
-    if (sentItems.length > 10) sentItems.pop();
-    renderHistory();
-  }
+      // ---- Delay chips ----
+      $("delay-row").addEventListener("click", (e) => {
+        const chip = e.target.closest(".delay-chip");
+        if (!chip) return;
+        document
+          .querySelectorAll(".delay-chip")
+          .forEach((c) => c.classList.remove("active"));
+        chip.classList.add("active");
+        selectedDelay = parseInt(chip.dataset.delay, 10);
+      });
 
-  function renderHistory() {
-    if (!sentItems.length) { historyList.innerHTML = '<div class="empty-history">No notifications sent yet</div>'; return; }
-    historyList.innerHTML = sentItems.map(item => {
-      const timeStr = item.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      return `<div class="history-item">
+      // ---- Char count ----
+      bodyInput.addEventListener("input", () => {
+        const rem = 200 - bodyInput.value.length;
+        charCount.textContent = rem;
+        charCount.style.color = rem < 20 ? "var(--warning)" : "var(--text-3)";
+      });
+
+      // ---- Send ----
+      permBtn.addEventListener("click", requestPermission);
+
+      sendBtn.addEventListener("click", async () => {
+        const title = titleInput.value.trim() || "Notification";
+        const body = bodyInput.value.trim();
+
+        addHistory(title, body);
+        titleInput.value = "";
+        bodyInput.value = "";
+        charCount.textContent = "200";
+
+        if (selectedDelay > 0) {
+          showToast(
+            `⏱ Sending in ${selectedDelay < 60 ? selectedDelay + "s" : "1 min"}…`,
+          );
+          setTimeout(() => fireNotification(title, body), selectedDelay * 1000);
+        } else {
+          await fireNotification(title, body);
+          const err = $("d-err").textContent;
+          showToast(err === "none" ? "✓ Sent" : "⚠ Error — see diagnostics");
+        }
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !sendBtn.disabled)
+          sendBtn.click();
+      });
+
+      // ---- Toast ----
+      let toastTimer;
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 3500);
+      }
+
+      // ---- History ----
+      function addHistory(title, body) {
+        sentItems.unshift({
+          title: title || "Notification",
+          body: body || "",
+          time: new Date(),
+        });
+        if (sentItems.length > 10) sentItems.pop();
+        renderHistory();
+      }
+
+      function renderHistory() {
+        if (!sentItems.length) {
+          historyList.innerHTML =
+            '<div class="empty-history">No notifications sent yet</div>';
+          return;
+        }
+        historyList.innerHTML = sentItems
+          .map((item) => {
+            const timeStr = item.time.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            return `<div class="history-item">
         <div class="hi-dot"></div>
         <div class="hi-body">
           <div class="hi-title">${esc(item.title)}</div>
-          ${item.body ? `<div class="hi-body-text">${esc(item.body)}</div>` : ''}
+          ${item.body ? `<div class="hi-body-text">${esc(item.body)}</div>` : ""}
         </div>
         <div class="hi-time">${timeStr}</div>
       </div>`;
-    }).join('');
-  }
+          })
+          .join("");
+      }
 
-  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+      function esc(s) {
+        return s
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
 
-  // ---- Boot ----
-  registerSW();
-  initPermission();
-  loadStoredIcon();
-</script>
-</body>
+      // ---- Boot ----
+      registerSW();
+      initPermission();
+      loadStoredIcon();
+    </script>
+  </body>
 </html>
