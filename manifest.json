@@ -1,0 +1,24 @@
+{
+  "name": "Notifier",
+  "short_name": "Notifier",
+  "description": "Send browser notifications",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#0f0f0f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%230f0f0f'/%3E%3Cpath d='M96 40c-30.9 0-56 25.1-56 56 0 18.3-4.5 31.2-9.2 40H161.2c-4.7-8.8-9.2-21.7-9.2-40 0-30.9-25.1-56-56-56zm0 120c8.8 0 16-7.2 16-16H80c0 8.8 7.2 16 16 16z' fill='%23a78bfa'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%230f0f0f'/%3E%3Cpath d='M256 90c-91.7 0-148 66.4-148 148 0 48.5-12 82.7-24.5 106H428.5C416 380.7 404 346.5 404 238c0-81.6-56.3-148-148-148zm0 332c23.3 0 42-18.9 42-42H214c0 23.1 18.7 42 42 42z' fill='%23a78bfa'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

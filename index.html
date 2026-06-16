@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Notifier">
+<link rel="manifest" href="manifest.json">
+<title>Notifier</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface-2: #242424;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.16);
+    --accent: #a78bfa;
+    --accent-dim: rgba(167,139,250,0.12);
+    --accent-glow: rgba(167,139,250,0.25);
+    --text: #f5f5f5;
+    --text-2: #888;
+    --text-3: #555;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --transition: 0.18s ease;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  .app {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 480px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 24px 20px 40px;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+
+  .logo {
+    width: 38px;
+    height: 38px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo svg { width: 20px; height: 20px; }
+
+  header h1 {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  header span {
+    font-size: 13px;
+    color: var(--text-2);
+    margin-left: auto;
+    font-weight: 400;
+  }
+
+  .permission-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  .permission-card.visible { display: block; }
+
+  .perm-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .perm-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .perm-dot.granted { background: var(--success); }
+  .perm-dot.denied  { background: var(--danger); }
+  .perm-dot.default { background: var(--warning); }
+  .perm-dot.unknown { background: var(--text-3); }
+
+  .perm-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .perm-message {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .perm-message.sub {
+    font-size: 13px;
+    color: var(--text-2);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .perm-action {
+    margin-top: 14px;
+    width: 100%;
+    background: var(--accent-dim);
+    border: 1px solid rgba(167,139,250,0.3);
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition);
+    font-family: inherit;
+  }
+
+  .perm-action:hover { background: var(--accent-glow); }
+
+  .form-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-2);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .field { position: relative; }
+
+  input[type="text"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color var(--transition), background var(--transition);
+    -webkit-appearance: none;
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--accent);
+    background: var(--surface-2);
+  }
+
+  input[type="text"]::placeholder { color: var(--text-3); }
+
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    padding: 12px 14px;
+    outline: none;
+    resize: none;
+    min-height: 100px;
+    line-height: 1.5;
+    transition: border-color var(--transition), background var(--transition);
+    -webkit-appearance: none;
+  }
+
+  textarea:focus {
+    border-color: var(--accent);
+    background: var(--surface-2);
+  }
+
+  textarea::placeholder { color: var(--text-3); }
+
+  .char-count {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    font-size: 11px;
+    color: var(--text-3);
+    pointer-events: none;
+  }
+
+  .delay-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .delay-chip {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-2);
+    font-size: 13px;
+    font-family: inherit;
+    padding: 9px 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--transition);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .delay-chip:hover { border-color: var(--border-hover); color: var(--text); }
+
+  .delay-chip.active {
+    background: var(--accent-dim);
+    border-color: rgba(167,139,250,0.4);
+    color: var(--accent);
+  }
+
+  .send-btn {
+    margin-top: 8px;
+    width: 100%;
+    background: var(--accent);
+    color: #0f0f0f;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 14px;
+    cursor: pointer;
+    transition: opacity var(--transition), transform var(--transition);
+    letter-spacing: -0.2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .send-btn:hover { opacity: 0.9; }
+  .send-btn:active { transform: scale(0.98); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .send-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+  .history {
+    margin-top: 32px;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+  }
+
+  .history-header {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-3);
+    margin-bottom: 14px;
+  }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .history-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .history-item .hi-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .hi-body { flex: 1; min-width: 0; }
+
+  .hi-title {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+  }
+
+  .hi-body-text {
+    font-size: 12px;
+    color: var(--text-2);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hi-time {
+    font-size: 11px;
+    color: var(--text-3);
+    flex-shrink: 0;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 20px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+    opacity: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  .ios-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  .ios-banner.visible { display: block; }
+
+  .ios-banner-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .ios-banner-body {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.5;
+  }
+
+  .ios-banner-steps {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ios-banner-steps li {
+    font-size: 12px;
+    color: var(--text-2);
+    list-style: none;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .ios-banner-steps li::before {
+    content: attr(data-n);
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .empty-history {
+    font-size: 13px;
+    color: var(--text-3);
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f4f4f5;
+      --surface: #ffffff;
+      --surface-2: #f9f9f9;
+      --border: rgba(0,0,0,0.08);
+      --border-hover: rgba(0,0,0,0.14);
+      --accent: #7c3aed;
+      --accent-dim: rgba(124,58,237,0.08);
+      --accent-glow: rgba(124,58,237,0.14);
+      --text: #111;
+      --text-2: #666;
+      --text-3: #aaa;
+    }
+
+    .send-btn { color: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+    </div>
+    <h1>Notifier</h1>
+    <span id="sw-status"></span>
+  </header>
+
+  <!-- iOS add-to-home banner -->
+  <div class="ios-banner" id="ios-banner">
+    <div class="ios-banner-title">📲 Enable notifications on iOS</div>
+    <div class="ios-banner-body">iOS requires this app to be added to your Home Screen before notifications can be enabled.</div>
+    <ul class="ios-banner-steps">
+      <li data-n="1">Tap the <strong>Share</strong> button in Safari's toolbar</li>
+      <li data-n="2">Scroll down and tap <strong>Add to Home Screen</strong></li>
+      <li data-n="3">Open the app from your Home Screen and grant permission</li>
+    </ul>
+  </div>
+
+  <!-- Permission card -->
+  <div class="permission-card" id="perm-card">
+    <div class="perm-status">
+      <div class="perm-dot" id="perm-dot"></div>
+      <div class="perm-label" id="perm-label">Checking…</div>
+    </div>
+    <div class="perm-message" id="perm-message"></div>
+    <div class="perm-message sub" id="perm-sub"></div>
+    <button class="perm-action" id="perm-btn" style="display:none">Enable notifications</button>
+  </div>
+
+  <!-- Compose form -->
+  <div class="form-area">
+    <div>
+      <label for="notif-title">Title</label>
+      <input type="text" id="notif-title" placeholder="Notification title" maxlength="80" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div>
+      <label for="notif-body">Message</label>
+      <div class="field">
+        <textarea id="notif-body" placeholder="Write your notification message here…" maxlength="200"></textarea>
+        <span class="char-count" id="char-count">200</span>
+      </div>
+    </div>
+
+    <div>
+      <label>Delay</label>
+      <div class="delay-row" id="delay-row">
+        <div class="delay-chip active" data-delay="0">Now</div>
+        <div class="delay-chip" data-delay="5">5 sec</div>
+        <div class="delay-chip" data-delay="10">10 sec</div>
+        <div class="delay-chip" data-delay="30">30 sec</div>
+        <div class="delay-chip" data-delay="60">1 min</div>
+      </div>
+    </div>
+
+    <button class="send-btn" id="send-btn" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      Send notification
+    </button>
+  </div>
+
+  <!-- History -->
+  <div class="history">
+    <div class="history-header">Sent</div>
+    <div class="history-list" id="history-list">
+      <div class="empty-history">No notifications sent yet</div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const permCard    = $('perm-card');
+  const permDot     = $('perm-dot');
+  const permLabel   = $('perm-label');
+  const permMessage = $('perm-message');
+  const permSub     = $('perm-sub');
+  const permBtn     = $('perm-btn');
+  const sendBtn     = $('send-btn');
+  const titleInput  = $('notif-title');
+  const bodyInput   = $('notif-body');
+  const charCount   = $('char-count');
+  const historyList = $('history-list');
+  const swStatus    = $('sw-status');
+  const iosBanner   = $('ios-banner');
+  const toast       = $('toast');
+
+  let selectedDelay = 0;
+  let swReg = null;
+  let sentItems = [];
+
+  // --- Platform detection ---
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+  const notifSupported = 'Notification' in window;
+
+  // --- Service Worker ---
+  async function registerSW() {
+    if (!('serviceWorker' in navigator)) return;
+    try {
+      swReg = await navigator.serviceWorker.register('sw.js');
+      swStatus.textContent = 'PWA';
+      swStatus.style.color = 'var(--success)';
+    } catch(e) {
+      swStatus.textContent = 'No SW';
+      swStatus.style.color = 'var(--text-3)';
+    }
+  }
+
+  // --- Permission state UI ---
+  function updatePermUI(state) {
+    permCard.classList.add('visible');
+    permDot.className = 'perm-dot ' + state;
+
+    const messages = {
+      granted: {
+        label: 'Allowed',
+        msg: 'Notifications are enabled. Fill in the fields above and hit Send.',
+        sub: '',
+        showBtn: false
+      },
+      denied: {
+        label: 'Blocked',
+        msg: 'Notifications have been blocked in your browser.',
+        sub: 'To fix this: open your browser/site settings, find Notifications, and set it to Allow for this page.',
+        showBtn: false
+      },
+      default: {
+        label: 'Permission needed',
+        msg: 'Tap below to allow notifications from this page.',
+        sub: 'Your browser will ask for confirmation.',
+        showBtn: true
+      },
+      unsupported: {
+        label: 'Not supported',
+        msg: 'Web notifications are not available in this browser or context.',
+        sub: '',
+        showBtn: false
+      }
+    };
+
+    const m = messages[state] || messages.unsupported;
+    permLabel.textContent = m.label;
+    permMessage.textContent = m.msg;
+    permSub.textContent = m.sub;
+    permBtn.style.display = m.showBtn ? 'block' : 'none';
+    sendBtn.disabled = state !== 'granted';
+  }
+
+  // --- Request permission ---
+  async function requestPermission() {
+    if (!notifSupported) return;
+    try {
+      const result = await Notification.requestPermission();
+      updatePermUI(result);
+    } catch(e) {
+      updatePermUI('unsupported');
+    }
+  }
+
+  // --- Init permission check ---
+  function initPermission() {
+    if (isIOS && isSafari && !isStandalone) {
+      iosBanner.classList.add('visible');
+      updatePermUI('unsupported');
+      return;
+    }
+
+    if (!notifSupported) {
+      updatePermUI('unsupported');
+      return;
+    }
+
+    updatePermUI(Notification.permission);
+  }
+
+  // --- Show a notification ---
+  function fireNotification(title, body, delay) {
+    const doFire = () => {
+      if (Notification.permission !== 'granted') return;
+
+      const options = {
+        body: body || undefined,
+        icon: buildIcon(),
+        badge: buildIcon(),
+        vibrate: [100, 50, 100],
+        timestamp: Date.now(),
+        requireInteraction: false
+      };
+
+      if (swReg) {
+        swReg.showNotification(title || 'Notification', options);
+      } else {
+        new Notification(title || 'Notification', options);
+      }
+    };
+
+    if (delay > 0) {
+      showToast(`⏱ Sending in ${delay < 60 ? delay + 's' : '1 min'}…`);
+      setTimeout(doFire, delay * 1000);
+    } else {
+      doFire();
+    }
+  }
+
+  // --- Build inline SVG icon as data URL ---
+  function buildIcon() {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#1a1a1a"/><path d="M32 14a14 14 0 0 0-14 14c0 9.6-3.5 13-3.5 13h35S46 37.6 46 28A14 14 0 0 0 32 14zm4 30a4 4 0 0 1-8 0z" fill="#a78bfa"/></svg>`;
+    return 'data:image/svg+xml,' + encodeURIComponent(svg);
+  }
+
+  // --- Toast ---
+  let toastTimer;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // --- History ---
+  function addHistory(title, body) {
+    sentItems.unshift({
+      title: title || 'Notification',
+      body: body || '',
+      time: new Date()
+    });
+    if (sentItems.length > 10) sentItems.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    if (!sentItems.length) {
+      historyList.innerHTML = '<div class="empty-history">No notifications sent yet</div>';
+      return;
+    }
+    historyList.innerHTML = sentItems.map(item => {
+      const t = item.time;
+      const timeStr = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `
+        <div class="history-item">
+          <div class="hi-dot"></div>
+          <div class="hi-body">
+            <div class="hi-title">${escHtml(item.title)}</div>
+            ${item.body ? `<div class="hi-body-text">${escHtml(item.body)}</div>` : ''}
+          </div>
+          <div class="hi-time">${timeStr}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // --- Delay chips ---
+  document.getElementById('delay-row').addEventListener('click', e => {
+    const chip = e.target.closest('.delay-chip');
+    if (!chip) return;
+    document.querySelectorAll('.delay-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    selectedDelay = parseInt(chip.dataset.delay, 10);
+  });
+
+  // --- Char count ---
+  bodyInput.addEventListener('input', () => {
+    const rem = 200 - bodyInput.value.length;
+    charCount.textContent = rem;
+    charCount.style.color = rem < 20 ? 'var(--warning)' : 'var(--text-3)';
+  });
+
+  // --- Send button ---
+  permBtn.addEventListener('click', requestPermission);
+
+  sendBtn.addEventListener('click', () => {
+    const title = titleInput.value.trim() || 'Notification';
+    const body  = bodyInput.value.trim();
+
+    addHistory(title, body);
+    fireNotification(title, body, selectedDelay);
+
+    if (selectedDelay === 0) showToast('✓ Notification sent');
+
+    titleInput.value = '';
+    bodyInput.value = '';
+    charCount.textContent = '200';
+  });
+
+  // --- Keyboard: send on Cmd/Ctrl+Enter ---
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      if (!sendBtn.disabled) sendBtn.click();
+    }
+  });
+
+  // --- Boot ---
+  registerSW();
+  initPermission();
+</script>
+</body>
+</html>
