@@ -1023,6 +1023,13 @@
             : "default",
           dataUrl ? "ok" : "",
         );
+
+        // Pre-store badge in the SW so it survives consolidation even across sends
+        if (swReg?.active && dataUrl) {
+          iconToBadge(dataUrl).then((badge) => {
+            if (badge) swReg.active.postMessage({ type: "STORE_BADGE", badge });
+          });
+        }
       }
 
       function loadStoredIcon() {
