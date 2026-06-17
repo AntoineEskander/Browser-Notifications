@@ -14,6 +14,8 @@
     />
     <meta name="apple-mobile-web-app-title" content="Notifier" />
     <link rel="manifest" href="manifest.json" />
+    <link rel="icon" id="favicon" type="image/png" href="" />
+    <link rel="apple-touch-icon" id="apple-touch-icon" href="" />
     <title>Notifier</title>
     <style>
       *,
@@ -960,6 +962,39 @@
 
       const ICON_STORAGE_KEY = "notifier_custom_icon";
 
+      // Generate the default bell favicon as a PNG data URL
+      function defaultFavicon() {
+        const SIZE = 64;
+        const c = document.createElement("canvas");
+        c.width = c.height = SIZE;
+        const ctx = c.getContext("2d");
+        // Dark rounded background
+        ctx.fillStyle = "#1a1a1a";
+        roundRect(ctx, 0, 0, SIZE, SIZE, 14);
+        ctx.fill();
+        // Bell shape
+        ctx.fillStyle = "#a78bfa";
+        ctx.beginPath();
+        // Bell body
+        ctx.arc(32, 26, 14, Math.PI, 0);
+        ctx.lineTo(46, 44);
+        ctx.lineTo(18, 44);
+        ctx.closePath();
+        ctx.fill();
+        // Bell base/clapper
+        ctx.beginPath();
+        ctx.arc(32, 46, 4, 0, Math.PI * 2);
+        ctx.fill();
+        // Stem
+        ctx.fillRect(29, 10, 6, 6);
+        return c.toDataURL("image/png");
+      }
+
+      function setFavicon(dataUrl) {
+        $("favicon").href = dataUrl;
+        $("apple-touch-icon").href = dataUrl;
+      }
+
       function setIcon(dataUrl, label) {
         customIconDataUrl = dataUrl;
         if (dataUrl) {
@@ -980,6 +1015,7 @@
         try {
           localStorage.setItem(ICON_STORAGE_KEY, dataUrl || "");
         } catch (_) {}
+        setFavicon(dataUrl || defaultFavicon());
         diag.set(
           "d-icon",
           dataUrl
@@ -1432,6 +1468,7 @@
       // ---- Boot ----
       registerSW();
       initPermission();
+      setFavicon(defaultFavicon());
       loadStoredIcon();
     </script>
   </body>
